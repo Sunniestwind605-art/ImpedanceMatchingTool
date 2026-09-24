@@ -34,8 +34,8 @@ export function svgDocument(content, { width = 760, height = 280, label = "" } =
     .node{fill:#293021}.panel{fill:#fffdf0;stroke:#d8d2a1;stroke-width:2}
     .title{font:700 22px system-ui,sans-serif;fill:#293021}.label{font:15px system-ui,sans-serif;fill:#34392a}
     .value{font:600 14px ui-monospace,monospace;fill:#77713c}.muted{font:13px system-ui,sans-serif;fill:#74765f}
-    .smith-grid{fill:none;stroke:#aaa889;stroke-width:1.05;opacity:.38;stroke-dasharray:1;stroke-dashoffset:1;animation:grid-draw .9s ease-out both;animation-delay:calc(var(--grid-order)*.025s)}
-    .smith-grid-detailed .smith-grid{stroke:#888a78;stroke-width:.82;opacity:.48}
+    .smith-grid{fill:none;stroke:#aaa889;stroke-width:1.05;--grid-opacity:.38;opacity:var(--grid-opacity);stroke-dasharray:var(--grid-length);stroke-dashoffset:var(--grid-length);animation:grid-draw .9s ease-out both;animation-delay:calc(var(--grid-order)*.025s)}
+    .smith-grid-detailed .smith-grid{stroke:#888a78;stroke-width:.82;--grid-opacity:.48}
     .smith-grid-detailed .smith-grid,.smith-grid-detailed .smith-grid-label{animation-delay:calc(var(--grid-order)*.012s)}
     .smith-grid-label{font:600 12px ui-monospace,monospace;fill:#646650;paint-order:stroke;stroke:#fbfae9;stroke-width:4px;stroke-linejoin:round;opacity:.76;animation:grid-label-in .3s ease-out both;animation-delay:calc(var(--grid-order)*.025s)}
     .smith-vswr-reference{fill:none;stroke:#b2aa79;stroke-width:1.7;stroke-dasharray:5 5;opacity:.6;stroke-dashoffset:1;animation:grid-draw .85s ease-out both;animation-delay:1s}

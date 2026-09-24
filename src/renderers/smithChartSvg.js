@@ -1,11 +1,11 @@
-import { complex, reciprocal } from "../core/complex.js?v=lossy-mode-1";
+import { complex, reciprocal } from "../core/complex.js?v=lossy-mode-2";
 import {
   reflectionCoefficient,
   transformNormalizedAdmittance,
   transformNormalizedImpedance,
   wrapHalfWavelength,
-} from "../core/transmissionLine.js?v=lossy-mode-1";
-import { svgDocument } from "./svg.js?v=lossy-mode-1";
+} from "../core/transmissionLine.js?v=lossy-mode-2";
+import { svgDocument } from "./svg.js?v=lossy-mode-2";
 
 const SIZE = 640;
 const CENTER = SIZE / 2;
@@ -23,6 +23,16 @@ function pathFromReflections(reflections) {
     const { x, y } = pointFromReflection(gamma);
     return `${index ? "L" : "M"} ${x.toFixed(2)} ${y.toFixed(2)}`;
   }).join(" ");
+}
+
+function pathLength(reflections) {
+  let length = 0;
+  for (let index = 1; index < reflections.length; index += 1) {
+    const previous = pointFromReflection(reflections[index - 1]);
+    const current = pointFromReflection(reflections[index]);
+    length += Math.hypot(current.x - previous.x, current.y - previous.y);
+  }
+  return Math.max(1, length);
 }
 
 function sampleLineImpedance(load, distance) {
@@ -214,7 +224,9 @@ function gridSvg(detailed) {
     const centerGamma = r / (1 + r);
     const radiusGamma = 1 / (1 + r);
     const center = pointFromReflection(complex(centerGamma, 0));
-    parts.push(`<circle class="smith-grid" pathLength="1" style="--grid-order:${gridOrder++}" cx="${center.x}" cy="${center.y}" r="${radiusGamma * RADIUS}"/>`);
+    const circleRadius = radiusGamma * RADIUS;
+    const order = gridOrder++;
+    parts.push(`<circle class="smith-grid" style="--grid-order:${order};--grid-length:${2 * Math.PI * circleRadius}" cx="${center.x}" cy="${center.y}" r="${circleRadius}"/>`);
     if (detailed && labeledResistanceValues.has(r)) {
       const realGamma = (r - 1) / (r + 1);
       const labelPoint = pointFromReflection(complex(realGamma, 0));
@@ -236,7 +248,8 @@ function gridSvg(detailed) {
         const resistance = Math.expm1(fraction * logRange);
         samples.push(reflectionCoefficient(complex(resistance, x)));
       }
-      parts.push(`<path class="smith-grid" pathLength="1" style="--grid-order:${gridOrder++}" d="${pathFromReflections(samples)}"/>`);
+      const order = gridOrder++;
+      parts.push(`<path class="smith-grid" style="--grid-order:${order};--grid-length:${pathLength(samples)}" d="${pathFromReflections(samples)}"/>`);
 
       if (!detailed || magnitude > 5) continue;
       const reactanceGamma = reflectionCoefficient(complex(0, x));
