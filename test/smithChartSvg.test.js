@@ -4,9 +4,9 @@ import { calculateSingleStub } from "../src/calculators/singleStub.js";
 import { complex } from "../src/core/complex.js";
 import { renderSmithChartSvg } from "../src/renderers/smithChartSvg.js";
 
-test("Smith chart renders a labeled full grid, dim VSWR circle, and animated solution path", () => {
+test("expanded Smith chart renders a labeled full grid, dim VSWR circle, and animated solution path", () => {
   const result = calculateSingleStub(complex(100, -50), 50);
-  const svg = renderSmithChartSvg(result, "single-stub", 0);
+  const svg = renderSmithChartSvg(result, "single-stub", 0, { detail: "full" });
 
   assert.match(svg, /viewBox="0 0 640 640"/);
   assert.match(svg, /class="smith-grid-label resistance-label"[^>]*>0\.2<\/text>/);
@@ -17,5 +17,14 @@ test("Smith chart renders a labeled full grid, dim VSWR circle, and animated sol
   assert.match(svg, /Starting load point/);
   assert.match(svg, /Matched endpoint/);
   assert.match(svg, /VSWR 2\.62:1/);
+});
+
+test("compact Smith chart keeps detailed grid labels for the expanded view", () => {
+  const result = calculateSingleStub(complex(100, -50), 50);
+  const svg = renderSmithChartSvg(result, "single-stub", 0);
+
+  assert.match(svg, /class="smith-grid-compact"/);
+  assert.doesNotMatch(svg, /class="smith-grid-label (?:resistance|reactance)-label"/);
+  assert.match(svg, /class="smith-trace trace-0"/);
 });
 

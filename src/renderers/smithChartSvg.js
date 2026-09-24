@@ -152,42 +152,48 @@ function traceFor(result, technique, solution) {
   return [];
 }
 
-function gridSvg() {
+function gridSvg(detailed) {
   const parts = [];
   let gridOrder = 0;
-  const resistanceValues = [0, 0.2, 0.5, 1, 2, 5, 10];
+  const resistanceValues = detailed
+    ? [0, 0.1, 0.2, 0.3, 0.5, 0.7, 1, 1.4, 2, 3, 5, 10, 20, 50]
+    : [0, 0.5, 1, 2];
+  const labeledResistanceValues = new Set([0.1, 0.2, 0.3, 0.5, 0.7, 1, 1.4, 2, 3, 5, 10]);
   for (const r of resistanceValues) {
     const centerGamma = r / (1 + r);
     const radiusGamma = 1 / (1 + r);
     const center = pointFromReflection(complex(centerGamma, 0));
     parts.push(`<circle class="smith-grid" pathLength="1" style="--grid-order:${gridOrder++}" cx="${center.x}" cy="${center.y}" r="${radiusGamma * RADIUS}"/>`);
-    if (r > 0) {
+    if (detailed && labeledResistanceValues.has(r)) {
       const realGamma = (r - 1) / (r + 1);
       const labelPoint = pointFromReflection(complex(realGamma, 0));
       parts.push(`<text class="smith-grid-label resistance-label" x="${labelPoint.x}" y="${CENTER + 16}" text-anchor="middle" style="--grid-order:${gridOrder++}">${r}</text>`);
     }
   }
 
-  for (const x of [-5, -2, -1, -0.5, -0.2, 0.2, 0.5, 1, 2, 5]) {
-    const center = pointFromReflection(complex(1, 1 / x));
-    const gridRadius = RADIUS / Math.abs(x);
-    const samples = [];
-    for (let index = 0; index <= 240; index += 1) {
-      const angle = Math.PI * 2 * index / 240;
-      const gamma = complex(
-        1 + Math.cos(angle) / x,
-        1 / x + Math.sin(angle) / x,
-      );
-      if (Math.hypot(gamma.re, gamma.im) <= 1.0001) samples.push(gamma);
-    }
-    if (samples.length > 1) {
+  const reactanceValues = detailed
+    ? [0.1, 0.2, 0.3, 0.5, 0.7, 1, 1.4, 2, 3, 5, 10, 20, 50]
+    : [0.5, 1, 2];
+  for (const magnitude of reactanceValues) {
+    for (const x of [-magnitude, magnitude]) {
+      const samples = [];
+      const maxResistance = 500;
+      const logRange = Math.log1p(maxResistance);
+      const count = detailed ? 220 : 120;
+      for (let index = 0; index <= count; index += 1) {
+        const fraction = index / count;
+        const resistance = Math.expm1(fraction * logRange);
+        samples.push(reflectionCoefficient(complex(resistance, x)));
+      }
       parts.push(`<path class="smith-grid" pathLength="1" style="--grid-order:${gridOrder++}" d="${pathFromReflections(samples)}"/>`);
+
+      if (!detailed || magnitude > 5) continue;
+      const reactanceGamma = reflectionCoefficient(complex(0, x));
+      const reactancePoint = pointFromReflection(reactanceGamma);
+      const labelX = reactancePoint.x + (reactancePoint.x < CENTER ? 10 : -10);
+      const labelY = reactancePoint.y + (x > 0 ? 5 : -3);
+      parts.push(`<text class="smith-grid-label reactance-label" x="${labelX}" y="${labelY}" text-anchor="${reactancePoint.x < CENTER ? "start" : "end"}" style="--grid-order:${gridOrder++}">${magnitude}</text>`);
     }
-    const reactanceGamma = reflectionCoefficient(complex(0, x));
-    const reactancePoint = pointFromReflection(reactanceGamma);
-    const labelX = reactancePoint.x + (reactancePoint.x < CENTER ? 9 : -9);
-    const labelY = reactancePoint.y + (x > 0 ? 5 : -2);
-    parts.push(`<text class="smith-grid-label reactance-label" x="${labelX}" y="${labelY}" text-anchor="${reactancePoint.x < CENTER ? "start" : "end"}" style="--grid-order:${gridOrder++}">${Math.abs(x)}</text>`);
   }
   parts.push(`<line class="smith-axis" x1="${CENTER - RADIUS}" y1="${CENTER}" x2="${CENTER + RADIUS}" y2="${CENTER}"/>`);
   parts.push(`<circle class="smith-boundary" cx="${CENTER}" cy="${CENTER}" r="${RADIUS}"/>`);
@@ -199,10 +205,10 @@ function gridSvg() {
   return parts.join("\n");
 }
 
-function markers(start, end, traces, technique) {
+function markers(start, end, traces, technique, animationStart) {
   const s = pointFromReflection(start);
   const e = pointFromReflection(end);
-  const lastTraceDelay = 1.05 + Math.max(0, traces.length - 1) * 1.4 + 1.3;
+  const lastTraceDelay = animationStart + Math.max(0, traces.length - 1) * 1.4 + 1.3;
   const intermediate = traces.slice(0, -1).map((trace, index) => {
     const lastPoint = trace.points.at(-1) ?? start;
     const p = pointFromReflection(lastPoint);
@@ -213,17 +219,20 @@ function markers(start, end, traces, technique) {
         : technique === "quarter-wave"
           ? "Real Z"
           : "Network step";
-    return `<circle class="smith-step" cx="${p.x}" cy="${p.y}" r="6" style="--step-order:${index}"><title>${pointLabel} point</title></circle>
-      <text class="smith-step-label" x="${p.x + 9}" y="${p.y + 18}" style="--step-order:${index}">${pointLabel}</text>`;
+    return `<circle class="smith-step" cx="${p.x}" cy="${p.y}" r="6" style="--step-order:${index};--trace-start:${animationStart}s"><title>${pointLabel} point</title></circle>
+      <text class="smith-step-label" x="${p.x + 9}" y="${p.y + 18}" style="--step-order:${index};--trace-start:${animationStart}s">${pointLabel}</text>`;
   }).join("\n");
-  return `<circle class="smith-start" cx="${s.x}" cy="${s.y}" r="7" style="--point-delay:.9s"><title>Starting load point</title></circle>
-  <text class="smith-marker-label" x="${s.x + 10}" y="${s.y - 10}" style="--point-delay:.9s">Start</text>
+  const startPointDelay = animationStart - 0.15;
+  return `<circle class="smith-start" cx="${s.x}" cy="${s.y}" r="7" style="--point-delay:${startPointDelay}s"><title>Starting load point</title></circle>
+  <text class="smith-marker-label" x="${s.x + 10}" y="${s.y - 10}" style="--point-delay:${startPointDelay}s">Start</text>
   ${intermediate}
   <circle class="smith-end" cx="${e.x}" cy="${e.y}" r="7" style="--point-delay:${lastTraceDelay}s"><title>Matched endpoint</title></circle>
   <text class="smith-marker-label smith-match-label" x="${e.x + 10}" y="${e.y - 10}" style="--point-delay:${lastTraceDelay}s">Match</text>`;
 }
 
-export function renderSmithChartSvg(result, technique, solutionIndex = 0) {
+export function renderSmithChartSvg(result, technique, solutionIndex = 0, options = {}) {
+  const detailed = options.detail === "full";
+  const animationStart = detailed ? 1.8 : 1.25;
   const solution = result.solutions[solutionIndex];
   if (!solution) {
     return svgDocument(`<rect class="panel" x="10" y="10" width="400" height="400" rx="18"/>
@@ -247,19 +256,21 @@ export function renderSmithChartSvg(result, technique, solutionIndex = 0) {
       if (index === traces.length - 1) points[points.length - 1] = end;
     }
     if (index === traces.length - 1 && points.length) points[points.length - 1] = end;
-    return `<path class="smith-trace trace-${index}" pathLength="1" d="${pathFromReflections(points)}" style="--draw-order:${index}" aria-label="${trace.label}"/>`;
+    return `<path class="smith-trace trace-${index}" pathLength="1" d="${pathFromReflections(points)}" style="--draw-order:${index};--trace-start:${animationStart}s" aria-label="${trace.label}"/>`;
   }).join("\n");
   const gammaMagnitude = Math.hypot(start.re, start.im);
   const standingWaveRatio = gammaMagnitude >= 0.999999
     ? "∞"
     : ((1 + gammaMagnitude) / (1 - gammaMagnitude)).toFixed(2);
-  const vswrReference = `<circle class="smith-vswr-reference" pathLength="1" cx="${CENTER}" cy="${CENTER}" r="${(gammaMagnitude * RADIUS).toFixed(2)}" style="--grid-order:0"/>`;
+  const vswrReference = `<circle class="smith-vswr-reference" pathLength="1" cx="${CENTER}" cy="${CENTER}" r="${(gammaMagnitude * RADIUS).toFixed(2)}" style="--grid-order:0;animation-delay:${animationStart - 0.1}s"/>`;
 
   return svgDocument(`<rect class="panel" x="4" y="4" width="632" height="632" rx="18"/>
-  ${gridSvg()}
+  <g class="${detailed ? "smith-grid-detailed" : "smith-grid-compact"}">
+  ${gridSvg(detailed)}
+  </g>
   ${vswrReference}
   ${traceSvg}
-  ${markers(start, end, traces, technique)}
+  ${markers(start, end, traces, technique, animationStart)}
   <text class="smith-caption" x="${CENTER}" y="${SIZE - 17}" text-anchor="middle">Normalized impedance • clockwise toward generator • VSWR ${standingWaveRatio}:1</text>`, {
     width: SIZE,
     height: SIZE,

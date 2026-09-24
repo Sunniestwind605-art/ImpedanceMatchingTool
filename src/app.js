@@ -105,7 +105,9 @@ function renderCurrent() {
   const solution = currentResult.solutions[index];
   const chartSvg = renderSmithChartSvg(currentResult, selected, index);
   smithChart.innerHTML = chartSvg;
-  if (smithChartDialog.open) smithChartExpanded.innerHTML = chartSvg;
+  if (smithChartDialog.open) {
+    smithChartExpanded.innerHTML = renderSmithChartSvg(currentResult, selected, index, { detail: "full" });
+  }
   renderDetails(currentResult, selected, solution);
 }
 
@@ -145,7 +147,7 @@ chartReplay.addEventListener("click", renderCurrent);
 chartExpand.addEventListener("click", () => {
   if (!currentResult) return;
   const index = Number(solutionPicker.value || 0);
-  smithChartExpanded.innerHTML = renderSmithChartSvg(currentResult, technique.value, index);
+  smithChartExpanded.innerHTML = renderSmithChartSvg(currentResult, technique.value, index, { detail: "full" });
   smithChartDialog.showModal();
 });
 chartClose.addEventListener("click", () => smithChartDialog.close());
