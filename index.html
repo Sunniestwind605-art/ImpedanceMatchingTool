@@ -11,7 +11,7 @@
     <header>
       <p class="eyebrow">Lossless transmission-line design</p>
       <h1>Impedance Matching Tool</h1>
-      <p>Calculate a realizable matching network and inspect its circuit diagram.</p>
+      <p>Enter a load and line impedance to compare matching solutions, circuit diagrams, and their path across the Smith chart.</p>
     </header>
 
     <form id="matching-form">
@@ -55,7 +55,18 @@
         </label>
       </div>
       <p id="error" role="alert"></p>
-      <div id="diagram"></div>
+      <div class="visual-results">
+        <article class="result-card">
+          <h3>Matching circuit</h3>
+          <div id="diagram"></div>
+        </article>
+        <article class="result-card chart-card">
+          <h3>Smith chart path</h3>
+          <p class="chart-help">Watch the load move along its VSWR circle to the match.</p>
+          <div id="smith-chart"></div>
+        </article>
+      </div>
+      <div id="result-details" class="result-details" aria-live="polite"></div>
     </section>
   </main>
   <script type="module" src="./src/app.js"></script>

@@ -8,3 +8,4 @@ export * from "./renderers/lNetworkSvg.js";
 export * from "./renderers/singleStubSvg.js";
 export * from "./renderers/doubleStubSvg.js";
 export * from "./renderers/quarterWaveSvg.js";
+export * from "./renderers/smithChartSvg.js";

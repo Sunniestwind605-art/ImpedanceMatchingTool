@@ -7,6 +7,7 @@ import {
   renderDoubleStubSvg,
   renderLNetworkSvg,
   renderQuarterWaveSvg,
+  renderSmithChartSvg,
   renderSingleStubSvg,
 } from "./index.js";
 
@@ -18,6 +19,8 @@ const terminationField = document.querySelector("#termination-field");
 const frequencyField = document.querySelector("#frequency-field");
 const spacingField = document.querySelector("#spacing-field");
 const diagram = document.querySelector("#diagram");
+const smithChart = document.querySelector("#smith-chart");
+const resultDetails = document.querySelector("#result-details");
 const error = document.querySelector("#error");
 
 let currentResult;
@@ -45,6 +48,41 @@ function populateSolutions(result) {
   solutionPicker.disabled = result.solutions.length <= 1;
 }
 
+function detail(label, value) {
+  return `<div class="detail-item"><span>${label}</span><strong>${value}</strong></div>`;
+}
+
+function formatLength(value) {
+  return `${value.toFixed(6)} λ`;
+}
+
+function renderDetails(result, selected, solution) {
+  const values = [];
+  if (!solution) {
+    values.push(detail("Status", result.reason ?? "No matching solution"));
+  } else if (selected === "single-stub") {
+    values.push(detail("Line distance to stub", formatLength(solution.distanceWavelengths)));
+    values.push(detail("Open stub length", formatLength(solution.openStubLengthWavelengths)));
+    values.push(detail("Shorted stub length", formatLength(solution.shortedStubLengthWavelengths)));
+    values.push(detail("Normalized stub susceptance", solution.normalizedStubSusceptance.toFixed(6)));
+  } else if (selected === "double-stub") {
+    values.push(detail("Distance to first stub", formatLength(result.firstStubDistanceWavelengths)));
+    values.push(detail("Spacing between stubs", formatLength(result.spacingWavelengths)));
+    values.push(detail("Stub 1 open / short", `${formatLength(solution.firstOpenStubLengthWavelengths)} / ${formatLength(solution.firstShortedStubLengthWavelengths)}`));
+    values.push(detail("Stub 2 open / short", `${formatLength(solution.secondOpenStubLengthWavelengths)} / ${formatLength(solution.secondShortedStubLengthWavelengths)}`));
+    values.push(detail("Stub susceptances b₁ / b₂", `${solution.firstStubSusceptance.toFixed(5)} / ${solution.secondStubSusceptance.toFixed(5)}`));
+  } else if (selected === "l-network") {
+    values.push(detail("Network topology", solution.topology));
+    values.push(detail("Series element", `${solution.seriesComponent.kind}: ${solution.seriesComponent.value.toPrecision(5)} ${solution.seriesComponent.unit ?? ""}`));
+    values.push(detail("Shunt element", `${solution.shuntComponent.kind}: ${solution.shuntComponent.value.toPrecision(5)} ${solution.shuntComponent.unit ?? ""}`));
+  } else if (selected === "quarter-wave") {
+    values.push(detail("Line distance to transformer", formatLength(solution.placementDistanceWavelengths)));
+    values.push(detail("Transformer length", formatLength(solution.transformerLengthWavelengths)));
+    values.push(detail("Transformer impedance", `${solution.transformerImpedanceOhms.toFixed(4)} Ω`));
+  }
+  resultDetails.innerHTML = values.join("");
+}
+
 function renderCurrent() {
   if (!currentResult) return;
   const index = Number(solutionPicker.value || 0);
@@ -59,6 +97,9 @@ function renderCurrent() {
     });
   }
   if (selected === "quarter-wave") diagram.innerHTML = renderQuarterWaveSvg(currentResult, index);
+  const solution = currentResult.solutions[index];
+  smithChart.innerHTML = renderSmithChartSvg(currentResult, selected, index);
+  renderDetails(currentResult, selected, solution);
 }
 
 function calculate() {
@@ -81,6 +122,8 @@ form.addEventListener("submit", (event) => {
   } catch (caught) {
     currentResult = undefined;
     diagram.replaceChildren();
+    smithChart.replaceChildren();
+    resultDetails.replaceChildren();
     error.textContent = caught instanceof Error ? caught.message : String(caught);
   }
 });
