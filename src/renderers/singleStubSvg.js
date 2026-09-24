@@ -49,4 +49,3 @@ export function renderSingleStubSvg(result, solutionIndex = 0, termination = "sh
     label: `Single-stub ${termination}-circuit shunt match`,
   });
 }
-

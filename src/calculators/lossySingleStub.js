@@ -213,4 +213,3 @@ export function evaluateLossySingleStub(
   const total = complex(lineAdmittance.re + stub.re, lineAdmittance.im + stub.im);
   return scale(reciprocal(total), characteristicImpedance);
 }
-

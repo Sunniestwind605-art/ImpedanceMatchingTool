@@ -1,11 +1,11 @@
-import { complex, reciprocal } from "../core/complex.js?v=lossy-mode-3";
+import { complex, reciprocal } from "../core/complex.js?v=lossy-mode-4";
 import {
   reflectionCoefficient,
   transformNormalizedAdmittance,
   transformNormalizedImpedance,
   wrapHalfWavelength,
-} from "../core/transmissionLine.js?v=lossy-mode-3";
-import { svgDocument } from "./svg.js?v=lossy-mode-3";
+} from "../core/transmissionLine.js?v=lossy-mode-4";
+import { svgDocument } from "./svg.js?v=lossy-mode-4";
 
 const SIZE = 640;
 const CENTER = SIZE / 2;
@@ -331,4 +331,3 @@ export function renderSmithChartSvg(result, technique, solutionIndex = 0, option
     label: `Animated Smith chart with normalized resistance and reactance values for ${technique}`,
   });
 }
-

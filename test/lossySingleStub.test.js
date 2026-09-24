@@ -71,4 +71,3 @@ test("lossy single-stub validates attenuation and termination", () => {
   assert.throws(() => calculateLossySingleStub(complex(100), 50, 100.1), /attenuationDbPerWavelength/);
   assert.throws(() => calculateLossySingleStub(complex(100), 50, 0.1, "resistive"), /termination/);
 });
-

@@ -33,4 +33,3 @@ test("single-stub renderer identifies lossy feed and stub lines", () => {
   assert.match(svg, /0\.200 dB\/λ/);
   assert.match(svg, /Ystub\/Z₀/);
 });
-

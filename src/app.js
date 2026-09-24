@@ -10,7 +10,7 @@ import {
   renderQuarterWaveSvg,
   renderSmithChartSvg,
   renderSingleStubSvg,
-} from "./index.js?v=lossy-mode-3";
+} from "./index.js?v=lossy-mode-4";
 
 const form = document.querySelector("#matching-form");
 const technique = document.querySelector("#technique");
@@ -179,4 +179,3 @@ smithChartDialog.addEventListener("click", (event) => {
 
 updateFields();
 calculate();
-

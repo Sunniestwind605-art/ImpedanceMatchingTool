@@ -17,4 +17,3 @@ test("public API exports every calculator and SVG renderer", () => {
     assert.equal(typeof api[name], "function", `${name} is not publicly exported`);
   }
 });
-

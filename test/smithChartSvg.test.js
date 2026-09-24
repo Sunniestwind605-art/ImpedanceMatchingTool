@@ -40,4 +40,3 @@ test("lossy single-stub route spirals through the chart before reaching match", 
   assert.match(svg, /Lossy stub → match/);
   assert.match(svg, /class="smith-trace trace-1"/);
 });
-
