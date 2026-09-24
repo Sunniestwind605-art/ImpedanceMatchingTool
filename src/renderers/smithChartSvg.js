@@ -1,11 +1,11 @@
-import { complex, reciprocal } from "../core/complex.js";
+import { complex, reciprocal } from "../core/complex.js?v=lossy-mode-1";
 import {
   reflectionCoefficient,
   transformNormalizedAdmittance,
   transformNormalizedImpedance,
   wrapHalfWavelength,
-} from "../core/transmissionLine.js";
-import { svgDocument } from "./svg.js";
+} from "../core/transmissionLine.js?v=lossy-mode-1";
+import { svgDocument } from "./svg.js?v=lossy-mode-1";
 
 const SIZE = 640;
 const CENTER = SIZE / 2;
@@ -39,6 +39,44 @@ function sampleLineAdmittance(loadY, distance) {
     const d = distance * index / steps;
     const y = transformNormalizedAdmittance(loadY, d);
     return reflectionCoefficient(reciprocal(y));
+  });
+}
+
+function multiply(left, right) {
+  return complex(left.re * right.re - left.im * right.im, left.re * right.im + left.im * right.re);
+}
+
+function lossyLineReflection(loadReflection, distance, attenuationNpPerWavelength) {
+  const magnitude = Math.exp(-2 * attenuationNpPerWavelength * distance);
+  const phase = -4 * Math.PI * distance;
+  return multiply(loadReflection, complex(magnitude * Math.cos(phase), magnitude * Math.sin(phase)));
+}
+
+function lossyLineAdmittance(loadReflection, distance, attenuationNpPerWavelength) {
+  const gamma = lossyLineReflection(loadReflection, distance, attenuationNpPerWavelength);
+  return multiply(complex(1 - gamma.re, -gamma.im), reciprocal(complex(1 + gamma.re, gamma.im)));
+}
+
+function lossyStubAdmittance(length, termination, attenuationNpPerWavelength) {
+  if (termination === "short" && length < 1e-12) return complex(1e12, 0);
+  const real = attenuationNpPerWavelength * length;
+  const imaginary = 2 * Math.PI * length;
+  const denominator = Math.cosh(2 * real) + Math.cos(2 * imaginary);
+  const tanh = complex(Math.sinh(2 * real) / denominator, Math.sin(2 * imaginary) / denominator);
+  return termination === "open" ? tanh : reciprocal(tanh);
+}
+
+function lossyLinePath(loadReflection, distance, attenuationNpPerWavelength) {
+  const steps = Math.max(24, Math.ceil(distance * 400));
+  return Array.from({ length: steps + 1 }, (_, index) =>
+    lossyLineReflection(loadReflection, distance * index / steps, attenuationNpPerWavelength));
+}
+
+function lossyStubPath(lineAdmittance, length, termination, attenuationNpPerWavelength) {
+  const steps = Math.max(60, Math.ceil(length * 400));
+  return Array.from({ length: steps + 1 }, (_, index) => {
+    const stub = lossyStubAdmittance(length * index / steps, termination, attenuationNpPerWavelength);
+    return gammaFromY(complex(lineAdmittance.re + stub.re, lineAdmittance.im + stub.im));
   });
 }
 
@@ -90,6 +128,19 @@ function sampleLNetwork(result, solution) {
 
 function traceFor(result, technique, solution) {
   if (technique === "l-network") return [{ label: "Load → match", points: sampleLNetwork(result, solution) }];
+
+  if (technique === "lossy-single-stub") {
+    const load = complex(
+      result.loadImpedance.re / result.characteristicImpedance,
+      result.loadImpedance.im / result.characteristicImpedance,
+    );
+    const loadReflection = reflectionCoefficient(load);
+    const lineAdmittance = lossyLineAdmittance(loadReflection, solution.distanceWavelengths, result.attenuationNpPerWavelength);
+    return [
+      { label: "Load → lossy stub position", points: lossyLinePath(loadReflection, solution.distanceWavelengths, result.attenuationNpPerWavelength) },
+      { label: "Lossy stub → match", points: lossyStubPath(lineAdmittance, solution.stubLengthWavelengths, result.termination, result.attenuationNpPerWavelength) },
+    ];
+  }
 
   if (technique === "single-stub") {
     const loadY = reciprocal(complex(
@@ -212,7 +263,7 @@ function markers(start, end, traces, technique, animationStart) {
   const intermediate = traces.slice(0, -1).map((trace, index) => {
     const lastPoint = trace.points.at(-1) ?? start;
     const p = pointFromReflection(lastPoint);
-    const pointLabel = technique === "single-stub"
+    const pointLabel = technique === "single-stub" || technique === "lossy-single-stub"
       ? "Stub"
       : technique === "double-stub"
         ? ["Stub 1", "After stub 1", "Stub 2"][index] ?? `Step ${index + 1}`

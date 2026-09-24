@@ -24,6 +24,7 @@ form, section {
 
 form { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
 label { display: grid; gap: 7px; color: #4f513d; font-size: .9rem; font-weight: 700; }
+label small { color: #74765f; font-size: .74rem; font-weight: 500; line-height: 1.35; }
 input, select, button {
   width: 100%; border: 1px solid #9fb3c4; border-radius: 9px; padding: 11px 12px;
   color: #293021; background: #fffef7; font: inherit;

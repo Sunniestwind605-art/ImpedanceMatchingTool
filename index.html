@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Impedance Matching Tool</title>
-  <link rel="stylesheet" href="./src/app.css">
+  <link rel="stylesheet" href="./src/app.css?v=lossy-mode-1">
 </head>
 <body>
   <main>
@@ -19,6 +19,7 @@
         <select id="technique" name="technique">
           <option value="l-network">L-network</option>
           <option value="single-stub">Single stub</option>
+          <option value="lossy-single-stub">Single stub (lossy line)</option>
           <option value="double-stub">Double stub</option>
           <option value="quarter-wave">Quarter wave</option>
         </select>
@@ -37,6 +38,10 @@
       </label>
       <label id="spacing-field" hidden>Double-stub spacing (λ)
         <input id="spacing" name="spacing" type="number" min="0.000001" max="0.499999" step="any" value="0.125">
+      </label>
+      <label id="attenuation-field" hidden>Line attenuation (dB/λ)
+        <input id="attenuation" name="attenuation" type="number" min="0" max="100" step="any" value="0.1">
+        <small>Applied to the feed line and matching stub; real Z₀ assumed.</small>
       </label>
       <button type="submit">Calculate match</button>
     </form>
@@ -83,7 +88,7 @@
     </div>
     <div id="smith-chart-expanded"></div>
   </dialog>
-  <script type="module" src="./src/app.js"></script>
+  <script type="module" src="./src/app.js?v=lossy-mode-1"></script>
 </body>
 </html>
 

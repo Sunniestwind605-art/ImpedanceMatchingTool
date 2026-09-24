@@ -1,6 +1,7 @@
 import {
   calculateDoubleStub,
   calculateLNetwork,
+  calculateLossySingleStub,
   calculateQuarterWave,
   calculateSingleStub,
   complex,
@@ -9,7 +10,7 @@ import {
   renderQuarterWaveSvg,
   renderSmithChartSvg,
   renderSingleStubSvg,
-} from "./index.js";
+} from "./index.js?v=lossy-mode-1";
 
 const form = document.querySelector("#matching-form");
 const technique = document.querySelector("#technique");
@@ -18,6 +19,7 @@ const terminationPicker = document.querySelector("#termination");
 const terminationField = document.querySelector("#termination-field");
 const frequencyField = document.querySelector("#frequency-field");
 const spacingField = document.querySelector("#spacing-field");
+const attenuationField = document.querySelector("#attenuation-field");
 const diagram = document.querySelector("#diagram");
 const smithChart = document.querySelector("#smith-chart");
 const smithChartDialog = document.querySelector("#smith-chart-dialog");
@@ -38,7 +40,8 @@ function updateFields() {
   const selected = technique.value;
   frequencyField.hidden = selected !== "l-network";
   spacingField.hidden = selected !== "double-stub";
-  terminationField.hidden = !new Set(["single-stub", "double-stub"]).has(selected);
+  attenuationField.hidden = selected !== "lossy-single-stub";
+  terminationField.hidden = !new Set(["single-stub", "lossy-single-stub", "double-stub"]).has(selected);
 }
 
 function populateSolutions(result) {
@@ -70,6 +73,11 @@ function renderDetails(result, selected, solution) {
     values.push(detail("Open stub length", formatLength(solution.openStubLengthWavelengths)));
     values.push(detail("Shorted stub length", formatLength(solution.shortedStubLengthWavelengths)));
     values.push(detail("Normalized stub susceptance", solution.normalizedStubSusceptance.toFixed(6)));
+  } else if (selected === "lossy-single-stub") {
+    values.push(detail("Line attenuation", `${result.attenuationDbPerWavelength.toFixed(4)} dB/λ`));
+    values.push(detail("Line distance to stub", formatLength(solution.distanceWavelengths)));
+    values.push(detail(`${terminationPicker.value === "open" ? "Open" : "Shorted"} stub length`, formatLength(solution.stubLengthWavelengths)));
+    values.push(detail("Matching residual", solution.matchingError.toExponential(2)));
   } else if (selected === "double-stub") {
     values.push(detail("Distance to first stub", formatLength(result.firstStubDistanceWavelengths)));
     values.push(detail("Spacing between stubs", formatLength(result.spacingWavelengths)));
@@ -93,8 +101,19 @@ function renderCurrent() {
   const index = Number(solutionPicker.value || 0);
   const termination = terminationPicker.value;
   const selected = technique.value;
+  const solution = currentResult.solutions[index];
+  if (!solution) {
+    diagram.replaceChildren();
+    smithChart.innerHTML = renderSmithChartSvg(currentResult, selected, index);
+    if (smithChartDialog.open) {
+      smithChartExpanded.innerHTML = renderSmithChartSvg(currentResult, selected, index, { detail: "full" });
+    }
+    renderDetails(currentResult, selected, solution);
+    return;
+  }
   if (selected === "l-network") diagram.innerHTML = renderLNetworkSvg(currentResult, index);
   if (selected === "single-stub") diagram.innerHTML = renderSingleStubSvg(currentResult, index, termination);
+  if (selected === "lossy-single-stub") diagram.innerHTML = renderSingleStubSvg(currentResult, index, termination);
   if (selected === "double-stub") {
     diagram.innerHTML = renderDoubleStubSvg(currentResult, index, {
       firstTermination: termination,
@@ -102,7 +121,6 @@ function renderCurrent() {
     });
   }
   if (selected === "quarter-wave") diagram.innerHTML = renderQuarterWaveSvg(currentResult, index);
-  const solution = currentResult.solutions[index];
   const chartSvg = renderSmithChartSvg(currentResult, selected, index);
   smithChart.innerHTML = chartSvg;
   if (smithChartDialog.open) {
@@ -118,6 +136,7 @@ function calculate() {
   const selected = technique.value;
   if (selected === "l-network") currentResult = calculateLNetwork(load, z0, numberValue("#frequency"));
   if (selected === "single-stub") currentResult = calculateSingleStub(load, z0);
+  if (selected === "lossy-single-stub") currentResult = calculateLossySingleStub(load, z0, numberValue("#attenuation"), terminationPicker.value);
   if (selected === "double-stub") currentResult = calculateDoubleStub(load, z0, numberValue("#spacing"));
   if (selected === "quarter-wave") currentResult = calculateQuarterWave(load, z0);
   populateSolutions(currentResult);
@@ -142,7 +161,10 @@ technique.addEventListener("change", () => {
   form.requestSubmit();
 });
 solutionPicker.addEventListener("change", renderCurrent);
-terminationPicker.addEventListener("change", renderCurrent);
+terminationPicker.addEventListener("change", () => {
+  if (technique.value === "lossy-single-stub") calculate();
+  else renderCurrent();
+});
 chartReplay.addEventListener("click", renderCurrent);
 chartExpand.addEventListener("click", () => {
   if (!currentResult) return;

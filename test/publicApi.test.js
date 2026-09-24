@@ -6,6 +6,7 @@ test("public API exports every calculator and SVG renderer", () => {
   for (const name of [
     "calculateLNetwork",
     "calculateSingleStub",
+    "calculateLossySingleStub",
     "calculateDoubleStub",
     "calculateQuarterWave",
     "renderLNetworkSvg",
@@ -16,3 +17,4 @@ test("public API exports every calculator and SVG renderer", () => {
     assert.equal(typeof api[name], "function", `${name} is not publicly exported`);
   }
 });
+
