@@ -7,9 +7,9 @@ import {
 } from "../core/transmissionLine.js";
 import { svgDocument } from "./svg.js";
 
-const SIZE = 420;
+const SIZE = 640;
 const CENTER = SIZE / 2;
-const RADIUS = 170;
+const RADIUS = 250;
 
 function pointFromReflection(gamma) {
   return {
@@ -154,12 +154,18 @@ function traceFor(result, technique, solution) {
 
 function gridSvg() {
   const parts = [];
-  const resistanceValues = [0.2, 0.5, 1, 2, 5];
+  let gridOrder = 0;
+  const resistanceValues = [0, 0.2, 0.5, 1, 2, 5, 10];
   for (const r of resistanceValues) {
     const centerGamma = r / (1 + r);
     const radiusGamma = 1 / (1 + r);
     const center = pointFromReflection(complex(centerGamma, 0));
-    parts.push(`<circle class="smith-grid" cx="${center.x}" cy="${center.y}" r="${radiusGamma * RADIUS}"/>`);
+    parts.push(`<circle class="smith-grid" pathLength="1" style="--grid-order:${gridOrder++}" cx="${center.x}" cy="${center.y}" r="${radiusGamma * RADIUS}"/>`);
+    if (r > 0) {
+      const realGamma = (r - 1) / (r + 1);
+      const labelPoint = pointFromReflection(complex(realGamma, 0));
+      parts.push(`<text class="smith-grid-label resistance-label" x="${labelPoint.x}" y="${CENTER + 16}" text-anchor="middle" style="--grid-order:${gridOrder++}">${r}</text>`);
+    }
   }
 
   for (const x of [-5, -2, -1, -0.5, -0.2, 0.2, 0.5, 1, 2, 5]) {
@@ -175,22 +181,28 @@ function gridSvg() {
       if (Math.hypot(gamma.re, gamma.im) <= 1.0001) samples.push(gamma);
     }
     if (samples.length > 1) {
-      parts.push(`<path class="smith-grid" d="${pathFromReflections(samples)}"/>`);
+      parts.push(`<path class="smith-grid" pathLength="1" style="--grid-order:${gridOrder++}" d="${pathFromReflections(samples)}"/>`);
     }
+    const reactanceGamma = reflectionCoefficient(complex(0, x));
+    const reactancePoint = pointFromReflection(reactanceGamma);
+    const labelX = reactancePoint.x + (reactancePoint.x < CENTER ? 9 : -9);
+    const labelY = reactancePoint.y + (x > 0 ? 5 : -2);
+    parts.push(`<text class="smith-grid-label reactance-label" x="${labelX}" y="${labelY}" text-anchor="${reactancePoint.x < CENTER ? "start" : "end"}" style="--grid-order:${gridOrder++}">${Math.abs(x)}</text>`);
   }
   parts.push(`<line class="smith-axis" x1="${CENTER - RADIUS}" y1="${CENTER}" x2="${CENTER + RADIUS}" y2="${CENTER}"/>`);
   parts.push(`<circle class="smith-boundary" cx="${CENTER}" cy="${CENTER}" r="${RADIUS}"/>`);
   parts.push(`<circle class="smith-match" cx="${CENTER}" cy="${CENTER}" r="5"/>`);
-  parts.push(`<text class="smith-tick" x="${CENTER - RADIUS}" y="${CENTER + 18}" text-anchor="middle">−1</text>`);
-  parts.push(`<text class="smith-tick" x="${CENTER + RADIUS}" y="${CENTER + 18}" text-anchor="middle">+1</text>`);
-  parts.push(`<text class="smith-tick" x="${CENTER + 9}" y="${CENTER - RADIUS + 13}">+j</text>`);
-  parts.push(`<text class="smith-tick" x="${CENTER + 9}" y="${CENTER + RADIUS - 2}">−j</text>`);
+  parts.push(`<text class="smith-tick" x="${CENTER - RADIUS}" y="${CENTER + 32}" text-anchor="middle">−1</text>`);
+  parts.push(`<text class="smith-tick" x="${CENTER + RADIUS}" y="${CENTER + 32}" text-anchor="middle">+1</text>`);
+  parts.push(`<text class="smith-tick" x="${CENTER + 10}" y="${CENTER - RADIUS + 16}">+j</text>`);
+  parts.push(`<text class="smith-tick" x="${CENTER + 10}" y="${CENTER + RADIUS - 4}">−j</text>`);
   return parts.join("\n");
 }
 
 function markers(start, end, traces, technique) {
   const s = pointFromReflection(start);
   const e = pointFromReflection(end);
+  const lastTraceDelay = 1.05 + Math.max(0, traces.length - 1) * 1.4 + 1.3;
   const intermediate = traces.slice(0, -1).map((trace, index) => {
     const lastPoint = trace.points.at(-1) ?? start;
     const p = pointFromReflection(lastPoint);
@@ -204,11 +216,11 @@ function markers(start, end, traces, technique) {
     return `<circle class="smith-step" cx="${p.x}" cy="${p.y}" r="6" style="--step-order:${index}"><title>${pointLabel} point</title></circle>
       <text class="smith-step-label" x="${p.x + 9}" y="${p.y + 18}" style="--step-order:${index}">${pointLabel}</text>`;
   }).join("\n");
-  return `<circle class="smith-start" cx="${s.x}" cy="${s.y}" r="7"><title>Starting load point</title></circle>
-  <text class="smith-marker-label" x="${s.x + 10}" y="${s.y - 10}">Start</text>
+  return `<circle class="smith-start" cx="${s.x}" cy="${s.y}" r="7" style="--point-delay:.9s"><title>Starting load point</title></circle>
+  <text class="smith-marker-label" x="${s.x + 10}" y="${s.y - 10}" style="--point-delay:.9s">Start</text>
   ${intermediate}
-  <circle class="smith-end" cx="${e.x}" cy="${e.y}" r="7"><title>Matched endpoint</title></circle>
-  <text class="smith-marker-label smith-match-label" x="${e.x + 10}" y="${e.y - 10}">Match</text>`;
+  <circle class="smith-end" cx="${e.x}" cy="${e.y}" r="7" style="--point-delay:${lastTraceDelay}s"><title>Matched endpoint</title></circle>
+  <text class="smith-marker-label smith-match-label" x="${e.x + 10}" y="${e.y - 10}" style="--point-delay:${lastTraceDelay}s">Match</text>`;
 }
 
 export function renderSmithChartSvg(result, technique, solutionIndex = 0) {
@@ -237,14 +249,21 @@ export function renderSmithChartSvg(result, technique, solutionIndex = 0) {
     if (index === traces.length - 1 && points.length) points[points.length - 1] = end;
     return `<path class="smith-trace trace-${index}" pathLength="1" d="${pathFromReflections(points)}" style="--draw-order:${index}" aria-label="${trace.label}"/>`;
   }).join("\n");
+  const gammaMagnitude = Math.hypot(start.re, start.im);
+  const standingWaveRatio = gammaMagnitude >= 0.999999
+    ? "∞"
+    : ((1 + gammaMagnitude) / (1 - gammaMagnitude)).toFixed(2);
+  const vswrReference = `<circle class="smith-vswr-reference" pathLength="1" cx="${CENTER}" cy="${CENTER}" r="${(gammaMagnitude * RADIUS).toFixed(2)}" style="--grid-order:0"/>`;
 
-  return svgDocument(`<rect class="panel" x="4" y="4" width="412" height="412" rx="18"/>
+  return svgDocument(`<rect class="panel" x="4" y="4" width="632" height="632" rx="18"/>
   ${gridSvg()}
+  ${vswrReference}
   ${traceSvg}
   ${markers(start, end, traces, technique)}
-  <text class="smith-caption" x="210" y="405" text-anchor="middle">Normalized impedance • clockwise toward generator</text>`, {
-    width: 420,
-    height: 420,
-    label: `Animated Smith chart for ${technique}`,
+  <text class="smith-caption" x="${CENTER}" y="${SIZE - 17}" text-anchor="middle">Normalized impedance • clockwise toward generator • VSWR ${standingWaveRatio}:1</text>`, {
+    width: SIZE,
+    height: SIZE,
+    label: `Animated Smith chart with normalized resistance and reactance values for ${technique}`,
   });
 }
+

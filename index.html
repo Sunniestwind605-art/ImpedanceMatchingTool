@@ -62,13 +62,28 @@
         </article>
         <article class="result-card chart-card">
           <h3>Smith chart path</h3>
-          <p class="chart-help">Watch the load move along its VSWR circle to the match.</p>
+          <p class="chart-help">Normalized resistance circles and reactance arcs are labeled; the load’s VSWR circle is shown softly behind the selected path.</p>
+          <div class="chart-controls">
+            <button id="chart-replay" type="button">Replay chart</button>
+            <button id="chart-expand" type="button">Expand chart</button>
+          </div>
           <div id="smith-chart"></div>
         </article>
       </div>
       <div id="result-details" class="result-details" aria-live="polite"></div>
     </section>
   </main>
+  <dialog id="smith-chart-dialog" aria-labelledby="smith-dialog-title">
+    <div class="expanded-chart-toolbar">
+      <div>
+        <h2 id="smith-dialog-title">Smith chart</h2>
+        <p>Resistance values are shown on the real axis; reactance values are labeled around the perimeter.</p>
+      </div>
+      <button id="chart-close" type="button" aria-label="Close expanded Smith chart">Close</button>
+    </div>
+    <div id="smith-chart-expanded"></div>
+  </dialog>
   <script type="module" src="./src/app.js"></script>
 </body>
 </html>
+

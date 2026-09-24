@@ -20,6 +20,11 @@ const frequencyField = document.querySelector("#frequency-field");
 const spacingField = document.querySelector("#spacing-field");
 const diagram = document.querySelector("#diagram");
 const smithChart = document.querySelector("#smith-chart");
+const smithChartDialog = document.querySelector("#smith-chart-dialog");
+const smithChartExpanded = document.querySelector("#smith-chart-expanded");
+const chartReplay = document.querySelector("#chart-replay");
+const chartExpand = document.querySelector("#chart-expand");
+const chartClose = document.querySelector("#chart-close");
 const resultDetails = document.querySelector("#result-details");
 const error = document.querySelector("#error");
 
@@ -98,7 +103,9 @@ function renderCurrent() {
   }
   if (selected === "quarter-wave") diagram.innerHTML = renderQuarterWaveSvg(currentResult, index);
   const solution = currentResult.solutions[index];
-  smithChart.innerHTML = renderSmithChartSvg(currentResult, selected, index);
+  const chartSvg = renderSmithChartSvg(currentResult, selected, index);
+  smithChart.innerHTML = chartSvg;
+  if (smithChartDialog.open) smithChartExpanded.innerHTML = chartSvg;
   renderDetails(currentResult, selected, solution);
 }
 
@@ -134,6 +141,18 @@ technique.addEventListener("change", () => {
 });
 solutionPicker.addEventListener("change", renderCurrent);
 terminationPicker.addEventListener("change", renderCurrent);
+chartReplay.addEventListener("click", renderCurrent);
+chartExpand.addEventListener("click", () => {
+  if (!currentResult) return;
+  const index = Number(solutionPicker.value || 0);
+  smithChartExpanded.innerHTML = renderSmithChartSvg(currentResult, technique.value, index);
+  smithChartDialog.showModal();
+});
+chartClose.addEventListener("click", () => smithChartDialog.close());
+smithChartDialog.addEventListener("click", (event) => {
+  if (event.target === smithChartDialog) smithChartDialog.close();
+});
 
 updateFields();
 calculate();
+
