@@ -10,7 +10,7 @@ import {
   renderQuarterWaveSvg,
   renderSmithChartSvg,
   renderSingleStubSvg,
-} from "./index.js?v=lossy-mode-4";
+} from "./index.js?v=lossy-mode-5";
 
 const form = document.querySelector("#matching-form");
 const technique = document.querySelector("#technique");

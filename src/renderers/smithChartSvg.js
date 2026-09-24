@@ -1,11 +1,11 @@
-import { complex, reciprocal } from "../core/complex.js?v=lossy-mode-4";
+import { complex, reciprocal } from "../core/complex.js?v=lossy-mode-5";
 import {
   reflectionCoefficient,
   transformNormalizedAdmittance,
   transformNormalizedImpedance,
   wrapHalfWavelength,
-} from "../core/transmissionLine.js?v=lossy-mode-4";
-import { svgDocument } from "./svg.js?v=lossy-mode-4";
+} from "../core/transmissionLine.js?v=lossy-mode-5";
+import { svgDocument } from "./svg.js?v=lossy-mode-5";
 
 const SIZE = 640;
 const CENTER = SIZE / 2;
@@ -224,6 +224,19 @@ function gridSvg(detailed) {
     }
   }
 
+  if (detailed) {
+    const conductanceValues = [0.1, 0.2, 0.3, 0.5, 0.7, 1, 1.4, 2, 3, 5, 10, 20, 50];
+    for (const g of conductanceValues) {
+      const center = pointFromReflection(complex(-g / (1 + g), 0));
+      const circleRadius = RADIUS / (1 + g);
+      parts.push(`<circle class="smith-grid smith-admittance" style="--grid-order:${gridOrder++}" cx="${center.x}" cy="${center.y}" r="${circleRadius}"/>`);
+      if (g <= 10) {
+        const crossing = pointFromReflection(complex((1 - g) / (1 + g), 0));
+        parts.push(`<text class="smith-grid-label conductance-label" x="${crossing.x}" y="${CENTER - 8}" text-anchor="middle" style="--grid-order:${gridOrder++}">${g}</text>`);
+      }
+    }
+  }
+
   const reactanceValues = detailed
     ? [0.1, 0.2, 0.3, 0.5, 0.7, 1, 1.4, 2, 3, 5, 10, 20, 50]
     : [0.5, 1, 2];
@@ -247,6 +260,28 @@ function gridSvg(detailed) {
       const labelX = reactancePoint.x + (reactancePoint.x < CENTER ? 10 : -10);
       const labelY = reactancePoint.y + (x > 0 ? 5 : -3);
       parts.push(`<text class="smith-grid-label reactance-label" x="${labelX}" y="${labelY}" text-anchor="${reactancePoint.x < CENTER ? "start" : "end"}" style="--grid-order:${gridOrder++}">${magnitude}</text>`);
+    }
+  }
+
+  if (detailed) {
+    const susceptanceValues = [0.1, 0.2, 0.3, 0.5, 0.7, 1, 1.4, 2, 3, 5, 10, 20, 50];
+    for (const magnitude of susceptanceValues) {
+      for (const susceptance of [-magnitude, magnitude]) {
+        const samples = [];
+        const maxConductance = 500;
+        const logRange = Math.log1p(maxConductance);
+        for (let index = 0; index <= 220; index += 1) {
+          const conductance = Math.expm1(index / 220 * logRange);
+          samples.push(reflectionCoefficient(reciprocal(complex(conductance, susceptance))));
+        }
+        parts.push(`<path class="smith-grid smith-susceptance" style="--grid-order:${gridOrder++}" d="${pathFromReflections(samples)}"/>`);
+
+        if (magnitude > 5) continue;
+        const crossing = pointFromReflection(reflectionCoefficient(reciprocal(complex(0, susceptance))));
+        const x = crossing.x + (crossing.x < CENTER ? 7 : -7);
+        const y = crossing.y + (susceptance > 0 ? 4 : -4);
+        parts.push(`<text class="smith-grid-label susceptance-label" x="${x}" y="${y}" text-anchor="${crossing.x < CENTER ? "start" : "end"}" style="--grid-order:${gridOrder++}">${magnitude}</text>`);
+      }
     }
   }
   parts.push(`<line class="smith-axis" x1="${CENTER - RADIUS}" y1="${CENTER}" x2="${CENTER + RADIUS}" y2="${CENTER}"/>`);

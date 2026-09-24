@@ -13,6 +13,10 @@ test("expanded Smith chart renders a labeled full grid, dim VSWR circle, and ani
   assert.match(svg, /class="smith-grid-label resistance-label"[^>]*>0\.2<\/text>/);
   assert.match(svg, /class="smith-grid-label resistance-label"[^>]*>10<\/text>/);
   assert.match(svg, /class="smith-grid-label reactance-label"[^>]*>5<\/text>/);
+  assert.match(svg, /class="smith-grid smith-admittance"/);
+  assert.match(svg, /class="smith-grid smith-susceptance"/);
+  assert.match(svg, /class="smith-grid-label conductance-label"/);
+  assert.match(svg, /class="smith-grid-label susceptance-label"/);
   assert.match(svg, /class="smith-vswr-reference"/);
   assert.match(svg, /stroke-dasharray:3000/);
   assert.match(svg, /class="smith-trace trace-0"/);
