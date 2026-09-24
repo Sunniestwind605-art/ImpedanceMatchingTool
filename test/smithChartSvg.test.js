@@ -14,7 +14,7 @@ test("expanded Smith chart renders a labeled full grid, dim VSWR circle, and ani
   assert.match(svg, /class="smith-grid-label resistance-label"[^>]*>10<\/text>/);
   assert.match(svg, /class="smith-grid-label reactance-label"[^>]*>5<\/text>/);
   assert.match(svg, /class="smith-vswr-reference"/);
-  assert.match(svg, /--grid-length:[0-9.]+/);
+  assert.match(svg, /stroke-dasharray:3000/);
   assert.match(svg, /class="smith-trace trace-0"/);
   assert.match(svg, /Starting load point/);
   assert.match(svg, /Matched endpoint/);
