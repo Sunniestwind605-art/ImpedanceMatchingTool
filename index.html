@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Impedance Matching Tool</title>
+  <link rel="stylesheet" href="./src/app.css">
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">Lossless transmission-line design</p>
+      <h1>Impedance Matching Tool</h1>
+      <p>Calculate a realizable matching network and inspect its circuit diagram.</p>
+    </header>
+
+    <form id="matching-form">
+      <label>Technique
+        <select id="technique" name="technique">
+          <option value="l-network">L-network</option>
+          <option value="single-stub">Single stub</option>
+          <option value="double-stub">Double stub</option>
+          <option value="quarter-wave">Quarter wave</option>
+        </select>
+      </label>
+      <label>Load resistance (Ω)
+        <input id="load-resistance" name="loadResistance" type="number" min="0.000001" step="any" value="100" required>
+      </label>
+      <label>Load reactance (Ω)
+        <input id="load-reactance" name="loadReactance" type="number" step="any" value="-50" required>
+      </label>
+      <label>Line / source impedance (Ω)
+        <input id="characteristic-impedance" name="characteristicImpedance" type="number" min="0.000001" step="any" value="50" required>
+      </label>
+      <label id="frequency-field">Frequency (Hz)
+        <input id="frequency" name="frequency" type="number" min="0.000001" step="any" value="1000000000" required>
+      </label>
+      <label id="spacing-field" hidden>Double-stub spacing (λ)
+        <input id="spacing" name="spacing" type="number" min="0.000001" max="0.499999" step="any" value="0.125">
+      </label>
+      <button type="submit">Calculate match</button>
+    </form>
+
+    <section aria-live="polite">
+      <div class="result-toolbar">
+        <h2>Calculated network</h2>
+        <label>Solution
+          <select id="solution"></select>
+        </label>
+        <label id="termination-field" hidden>Stub termination
+          <select id="termination">
+            <option value="short">Short circuit</option>
+            <option value="open">Open circuit</option>
+          </select>
+        </label>
+      </div>
+      <p id="error" role="alert"></p>
+      <div id="diagram"></div>
+    </section>
+  </main>
+  <script type="module" src="./src/app.js"></script>
+</body>
+</html>
