@@ -1,0 +1,19 @@
+{
+  "id": "./",
+  "name": "Impedance Matching Tool",
+  "short_name": "Impedance Match",
+  "description": "Design impedance matching networks and explore their Smith chart paths.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#e9e7d8",
+  "theme_color": "#e9e7d8",
+  "icons": [
+    {
+      "src": "./icons/smith-chart.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

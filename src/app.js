@@ -10,7 +10,7 @@ import {
   renderQuarterWaveSvg,
   renderSmithChartSvg,
   renderSingleStubSvg,
-} from "./index.js?v=lossy-mode-5";
+} from "./index.js?v=offline-v2";
 
 const form = document.querySelector("#matching-form");
 const technique = document.querySelector("#technique");
@@ -179,3 +179,20 @@ smithChartDialog.addEventListener("click", (event) => {
 
 updateFields();
 calculate();
+
+const offlineStatus = document.querySelector("#offline-status");
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js")
+      .then(() => navigator.serviceWorker.ready)
+      .then(() => {
+        offlineStatus.textContent = "Ready for offline use in this browser.";
+      })
+      .catch((caught) => {
+        offlineStatus.textContent = "Offline storage could not be enabled in this browser.";
+        console.warn("Offline support could not be enabled in this browser.", caught);
+      });
+  }, { once: true });
+} else {
+  offlineStatus.textContent = "Offline use is not supported by this browser.";
+}

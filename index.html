@@ -4,14 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Impedance Matching Tool</title>
-  <link rel="stylesheet" href="./src/app.css?v=lossy-mode-5">
+  <meta name="theme-color" content="#e9e7d8">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/smith-chart.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./src/app.css?v=offline-v2">
 </head>
 <body>
   <main>
     <header>
-      <p class="eyebrow">Lossless transmission-line design</p>
+      <p class="eyebrow">RF transmission-line design</p>
       <h1>Impedance Matching Tool</h1>
-      <p>Enter a load and line impedance to compare matching solutions, circuit diagrams, and their path across the Smith chart.</p>
+      <p class="intro">Enter a load and line impedance to compare matching solutions, circuit diagrams, and their path across the Smith chart.</p>
+      <p id="offline-status" class="offline-note" role="status">Preparing offline use for this browser…</p>
     </header>
 
     <form id="matching-form">
@@ -82,12 +86,12 @@
     <div class="expanded-chart-toolbar">
       <div>
         <h2 id="smith-dialog-title">Smith chart</h2>
-        <p>Normalized resistance circles and reactance arcs, with their values marked around the chart.</p>
+        <p>Detailed normalized impedance and admittance curves, with their values marked around the chart.</p>
       </div>
       <button id="chart-close" type="button" aria-label="Close expanded Smith chart">Close</button>
     </div>
     <div id="smith-chart-expanded"></div>
   </dialog>
-  <script type="module" src="./src/app.js?v=lossy-mode-5"></script>
+  <script type="module" src="./src/app.js?v=offline-v2"></script>
 </body>
 </html>

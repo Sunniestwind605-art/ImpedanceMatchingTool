@@ -12,7 +12,8 @@ main { width: min(1040px, calc(100% - 32px)); margin: 0 auto; padding: 52px 0 72
 header { margin-bottom: 28px; }
 .eyebrow { color: #a04b35; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 h1 { margin: 4px 0 8px; font-size: clamp(2rem, 6vw, 4rem); line-height: 1; }
-header > p:last-child { color: #666851; font-size: 1.1rem; }
+header > p.intro { color: #666851; font-size: 1.1rem; }
+.offline-note { color: #555842; font-size: .86rem; }
 
 form, section {
   background: #fffdf0;
