@@ -49,3 +49,5 @@ const svg = renderSingleStubSvg(result, 0, "short");
 ```
 
 The calculation modules are pure and do not depend on a browser. SVG renderers return complete SVG strings and validate solution selections.
+
+This is still in testing , i am busy with other things at the moment
