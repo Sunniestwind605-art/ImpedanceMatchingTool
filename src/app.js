@@ -10,7 +10,7 @@ import {
   renderQuarterWaveSvg,
   renderSmithChartSvg,
   renderSingleStubSvg,
-} from "./index.js?v=offline-v2";
+} from "./index.js?v=offline-v3";
 
 const form = document.querySelector("#matching-form");
 const technique = document.querySelector("#technique");
@@ -121,7 +121,7 @@ function renderCurrent() {
     });
   }
   if (selected === "quarter-wave") diagram.innerHTML = renderQuarterWaveSvg(currentResult, index);
-  const chartSvg = renderSmithChartSvg(currentResult, selected, index);
+  const chartSvg = renderSmithChartSvg(currentResult, selected, index, { detail: "full" });
   smithChart.innerHTML = chartSvg;
   if (smithChartDialog.open) {
     smithChartExpanded.innerHTML = renderSmithChartSvg(currentResult, selected, index, { detail: "full" });

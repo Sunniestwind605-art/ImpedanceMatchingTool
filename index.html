@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#e9e7d8">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/smith-chart.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./src/app.css?v=offline-v2">
+  <link rel="stylesheet" href="./src/app.css?v=offline-v3">
 </head>
 <body>
   <main>
@@ -71,7 +71,7 @@
         </article>
         <article class="result-card chart-card">
           <h3>Smith chart path</h3>
-          <p class="chart-help">A clean overview of the matching path. Expand the chart for the full labeled Smith-chart grid.</p>
+          <p class="chart-help">Full Smith chart with labeled impedance and admittance grids. Replay the matching path or expand for a larger view.</p>
           <div class="chart-controls">
             <button id="chart-replay" type="button">Replay chart</button>
             <button id="chart-expand" type="button">Expand chart</button>
@@ -92,6 +92,6 @@
     </div>
     <div id="smith-chart-expanded"></div>
   </dialog>
-  <script type="module" src="./src/app.js?v=offline-v2"></script>
+  <script type="module" src="./src/app.js?v=offline-v3"></script>
 </body>
 </html>

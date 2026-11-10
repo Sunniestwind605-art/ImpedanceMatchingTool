@@ -26,6 +26,20 @@ test("single-stub ground truth for 100-j50 ohms on a 50-ohm line", () => {
   assertClose(far.shortedStubLengthWavelengths, 0.375, 1e-10);
 });
 
+test("Question 2 GSM900 series-capacitor load matches the Smith-chart design", () => {
+  const frequency = 925e6;
+  const capacitance = 5e-12;
+  const load = complex(100, -1 / (2 * Math.PI * frequency * capacitance));
+  const result = calculateSingleStub(load, 50);
+  const [shortest] = result.solutions;
+
+  // The photographed Smith-chart reading (0.126λ, 0.138λ) is approximate;
+  // compare the calculator with the precise transmission-line solution.
+  assertClose(shortest.distanceWavelengths, 0.12723941548798, 1e-11);
+  assertClose(shortest.shortedStubLengthWavelengths, 0.13710416138219, 1e-11);
+  assertComplexClose(evaluateSingleStub(load, 50, shortest), complex(50), 1e-9);
+});
+
 test("every single-stub solution matches representative complex loads", () => {
   const vectors = [
     { load: complex(100, -50), z0: 50 },
