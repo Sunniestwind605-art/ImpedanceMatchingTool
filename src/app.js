@@ -10,7 +10,7 @@ import {
   renderQuarterWaveSvg,
   renderSmithChartSvg,
   renderSingleStubSvg,
-} from "./index.js?v=offline-v7";
+} from "./index.js?v=offline-v8";
 
 const form = document.querySelector("#matching-form");
 const technique = document.querySelector("#technique");
@@ -29,6 +29,114 @@ const chartExpand = document.querySelector("#chart-expand");
 const chartClose = document.querySelector("#chart-close");
 const resultDetails = document.querySelector("#result-details");
 const error = document.querySelector("#error");
+
+function svgPointFromEvent(svg, event) {
+  const point = svg.createSVGPoint();
+  point.x = event.clientX;
+  point.y = event.clientY;
+  return point.matrixTransform(svg.getScreenCTM().inverse());
+}
+
+function zoomChart(svg, factor, anchor = null) {
+  const view = svg.viewBox.baseVal;
+  const point = anchor ?? { x: view.x + view.width / 2, y: view.y + view.height / 2 };
+  const width = Math.min(1600, Math.max(80, view.width * factor));
+  const height = width * view.height / view.width;
+  const scale = width / view.width;
+  svg.setAttribute("viewBox", `${point.x - (point.x - view.x) * scale} ${point.y - (point.y - view.y) * scale} ${width} ${height}`);
+}
+
+function pointReadout(svg, event, readout) {
+  if (svg.closest("[data-container]")?.dataset.ignoreClick === "true") {
+    delete svg.closest("[data-container]").dataset.ignoreClick;
+    return;
+  }
+  const point = svgPointFromEvent(svg, event);
+  const boundary = svg.querySelector(".smith-boundary");
+  const centerX = Number(boundary.getAttribute("cx"));
+  const centerY = Number(boundary.getAttribute("cy"));
+  const radius = Number(boundary.getAttribute("r"));
+  const gammaRe = (point.x - centerX) / radius;
+  const gammaIm = (centerY - point.y) / radius;
+  const gammaMagnitude = Math.hypot(gammaRe, gammaIm);
+  if (gammaMagnitude > 1.0005) return;
+
+  const denominator = (1 - gammaRe) ** 2 + gammaIm ** 2;
+  const zRe = denominator < 1e-12 ? Infinity : (1 - gammaMagnitude ** 2) / denominator;
+  const zIm = denominator < 1e-12 ? Infinity : 2 * gammaIm / denominator;
+  const yDenominator = (1 + gammaRe) ** 2 + gammaIm ** 2;
+  const yRe = yDenominator < 1e-12 ? Infinity : (1 - gammaMagnitude ** 2) / yDenominator;
+  const yIm = yDenominator < 1e-12 ? Infinity : -2 * gammaIm / yDenominator;
+  const vswr = gammaMagnitude >= 0.999999 ? "∞" : ((1 + gammaMagnitude) / (1 - gammaMagnitude)).toFixed(3);
+  const phase = (Math.atan2(gammaIm, gammaRe) * 180 / Math.PI).toFixed(2);
+  const fmt = (re, im) => `${Number.isFinite(re) ? re.toFixed(4) : "∞"} ${im < 0 ? "−" : "+"} j${Number.isFinite(im) ? Math.abs(im).toFixed(4) : "∞"}`;
+
+  svg.querySelector(".smith-inspection-point")?.remove();
+  const marker = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+  marker.setAttribute("class", "smith-inspection-point");
+  marker.setAttribute("cx", point.x);
+  marker.setAttribute("cy", point.y);
+  marker.setAttribute("r", String(radius * 0.013));
+  svg.append(marker);
+  readout.textContent = `Normalized Z = ${fmt(zRe, zIm)} · normalized Y = ${fmt(yRe, yIm)} · Γ = ${fmt(gammaRe, gammaIm)} · VSWR ${vswr}:1 · phase ${phase}°`;
+}
+
+function enableChartInspection(containerId, readoutId) {
+  const container = document.querySelector(containerId);
+  const readout = document.querySelector(readoutId);
+  container.dataset.container = "true";
+  container.addEventListener("click", (event) => {
+    const svg = event.target.closest("svg");
+    if (svg && container.contains(svg)) pointReadout(svg, event, readout);
+  });
+  container.addEventListener("wheel", (event) => {
+    const svg = event.target.closest("svg");
+    if (!svg || !container.contains(svg)) return;
+    event.preventDefault();
+    zoomChart(svg, event.deltaY < 0 ? 0.82 : 1.22, svgPointFromEvent(svg, event));
+  }, { passive: false });
+
+  let pan;
+  container.addEventListener("pointerdown", (event) => {
+    const svg = event.target.closest("svg");
+    if (!svg || event.button !== 0 || !event.shiftKey) return;
+    pan = { svg, x: event.clientX, y: event.clientY, moved: false };
+    svg.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  });
+  container.addEventListener("pointermove", (event) => {
+    if (!pan) return;
+    const view = pan.svg.viewBox.baseVal;
+    const rect = pan.svg.getBoundingClientRect();
+    const dx = (pan.x - event.clientX) * view.width / rect.width;
+    const dy = (pan.y - event.clientY) * view.height / rect.height;
+    if (Math.abs(dx) + Math.abs(dy) > 0.2) pan.moved = true;
+    pan.svg.setAttribute("viewBox", `${view.x + dx} ${view.y + dy} ${view.width} ${view.height}`);
+    pan.x = event.clientX;
+    pan.y = event.clientY;
+  });
+  container.addEventListener("pointerup", () => {
+    if (pan?.moved) container.dataset.ignoreClick = "true";
+    pan = undefined;
+  });
+}
+
+for (const [containerId, readoutId] of [["#smith-chart", "#smith-readout"], ["#smith-chart-expanded", "#smith-expanded-readout"]]) {
+  enableChartInspection(containerId, readoutId);
+}
+for (const controls of document.querySelectorAll("[data-zoom-controls]")) {
+  controls.addEventListener("click", (event) => {
+    const button = event.target.closest("button[data-zoom]");
+    if (!button) return;
+    const svg = document.querySelector(controls.dataset.zoomControls)?.querySelector("svg");
+    if (!svg) return;
+    if (button.dataset.zoom === "reset") {
+      svg.setAttribute("viewBox", "0 0 640 640");
+    } else {
+      zoomChart(svg, button.dataset.zoom === "in" ? 0.78 : 1.28);
+    }
+  });
+}
 
 let currentResult;
 

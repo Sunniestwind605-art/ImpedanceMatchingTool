@@ -38,7 +38,7 @@ function sampleLineAdmittance(loadY, distance) {
   return Array.from({ length: steps + 1 }, (_, index) => {
     const d = distance * index / steps;
     const y = transformNormalizedAdmittance(loadY, d);
-    return reflectionCoefficient(reciprocal(y));
+    return reflectionCoefficient(y);
   });
 }
 
@@ -84,11 +84,45 @@ function gammaFromY(y) {
   return reflectionCoefficient(y);
 }
 
-function shuntArc(admittance, susceptanceAdded) {
+function perimeterScales() {
+  const parts = [
+    `<circle class="smith-perimeter" cx="${CENTER}" cy="${CENTER}" r="${RADIUS + 11}"/>`,
+    `<circle class="smith-perimeter" cx="${CENTER}" cy="${CENTER}" r="${RADIUS + 25}"/>`,
+  ];
+  for (let index = 0; index < 100; index += 1) {
+    const angle = index * Math.PI * 2 / 100;
+    const major = index % 5 === 0;
+    const inner = RADIUS + (major ? 7 : 10);
+    const outer = RADIUS + 13;
+    const x1 = CENTER + Math.cos(angle) * inner;
+    const y1 = CENTER + Math.sin(angle) * inner;
+    const x2 = CENTER + Math.cos(angle) * outer;
+    const y2 = CENTER + Math.sin(angle) * outer;
+    parts.push(`<line class="smith-perimeter-tick${major ? " major" : ""}" x1="${x1.toFixed(2)}" y1="${y1.toFixed(2)}" x2="${x2.toFixed(2)}" y2="${y2.toFixed(2)}"/>`);
+    if (index % 2 === 0) {
+      const distance = index / 200;
+      const labelRadius = RADIUS + 19;
+      const x = CENTER + Math.cos(angle) * labelRadius;
+      const y = CENTER + Math.sin(angle) * labelRadius;
+      parts.push(`<text class="smith-perimeter-label" x="${x.toFixed(2)}" y="${y.toFixed(2)}" text-anchor="middle" dominant-baseline="central">${distance.toFixed(2)}</text>`);
+    }
+    if (index % 4 === 0) {
+      const distance = 0.5 - index / 200;
+      const labelRadius = RADIUS + 31;
+      const x = CENTER + Math.cos(angle) * labelRadius;
+      const y = CENTER + Math.sin(angle) * labelRadius;
+      parts.push(`<text class="smith-perimeter-label outer" x="${x.toFixed(2)}" y="${y.toFixed(2)}" text-anchor="middle" dominant-baseline="central">${distance.toFixed(2)}</text>`);
+    }
+  }
+  return parts.join("\n");
+}
+
+function shuntArc(admittance, susceptanceAdded, chart = "impedance") {
   const steps = Math.max(12, Math.ceil(Math.abs(susceptanceAdded) * 40));
   return Array.from({ length: steps + 1 }, (_, index) => {
     const b = susceptanceAdded * index / steps;
-    return gammaFromY(complex(admittance.re, admittance.im + b));
+    const y = complex(admittance.re, admittance.im + b);
+    return chart === "admittance" ? gammaFromY(y) : reflectionCoefficient(reciprocal(y));
   });
 }
 
@@ -152,8 +186,8 @@ function traceFor(result, technique, solution) {
     const yAtStub = transformNormalizedAdmittance(loadY, solution.distanceWavelengths);
     const stubB = solution.normalizedStubSusceptance;
     return [
-      { label: "Load → stub position", points: line },
-      { label: "Stub position → match", points: shuntArc(yAtStub, stubB) },
+      { label: "Load admittance → stub position", points: line },
+      { label: "Stub position → match", points: shuntArc(yAtStub, stubB, "admittance") },
     ];
   }
 
@@ -165,14 +199,14 @@ function traceFor(result, technique, solution) {
     const startDistance = result.firstStubDistanceWavelengths;
     const firstLine = sampleLineAdmittance(loadY, startDistance);
     const yAtFirst = transformNormalizedAdmittance(loadY, startDistance);
-    const firstAddition = shuntArc(yAtFirst, solution.firstStubSusceptance);
+    const firstAddition = shuntArc(yAtFirst, solution.firstStubSusceptance, "admittance");
     const yAfterFirst = complex(
       yAtFirst.re,
       yAtFirst.im + solution.firstStubSusceptance,
     );
     const secondLine = sampleLineAdmittance(yAfterFirst, result.spacingWavelengths);
     const yAtSecond = transformNormalizedAdmittance(yAfterFirst, result.spacingWavelengths);
-    const secondAddition = shuntArc(yAtSecond, solution.secondStubSusceptance);
+    const secondAddition = shuntArc(yAtSecond, solution.secondStubSusceptance, "admittance");
     return [
       { label: "Load → first stub", points: firstLine },
       { label: "First stub", points: firstAddition },
@@ -208,9 +242,9 @@ function gridSvg(detailed) {
   const parts = [];
   let gridOrder = 0;
   const resistanceValues = detailed
-    ? [0, 0.1, 0.2, 0.3, 0.5, 0.7, 1, 1.4, 2, 3, 5, 10, 20, 50]
+    ? [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1, 1.2, 1.4, 1.6, 1.8, 2, 2.5, 3, 4, 5, 7, 10, 20, 50]
     : [0, 0.5, 1, 2];
-  const labeledResistanceValues = new Set([0.1, 0.2, 0.3, 0.5, 0.7, 1, 1.4, 2, 3, 5, 10]);
+  const labeledResistanceValues = new Set(resistanceValues.filter((value) => value > 0 && value <= 10));
   for (const r of resistanceValues) {
     const centerGamma = r / (1 + r);
     const radiusGamma = 1 / (1 + r);
@@ -226,7 +260,7 @@ function gridSvg(detailed) {
   }
 
   if (detailed) {
-    const conductanceValues = [0.1, 0.2, 0.3, 0.5, 0.7, 1, 1.4, 2, 3, 5, 10, 20, 50];
+    const conductanceValues = resistanceValues.filter((value) => value > 0);
     for (const g of conductanceValues) {
       const center = pointFromReflection(complex(g / (1 + g), 0));
       const circleRadius = RADIUS / (1 + g);
@@ -239,7 +273,7 @@ function gridSvg(detailed) {
   }
 
   const reactanceValues = detailed
-    ? [0.1, 0.2, 0.3, 0.5, 0.7, 1, 1.4, 2, 3, 5, 10, 20, 50]
+    ? [0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 1, 1.2, 1.4, 1.6, 1.8, 2, 2.5, 3, 4, 5, 7, 10, 20, 50]
     : [0.5, 1, 2];
   for (const magnitude of reactanceValues) {
     for (const x of [-magnitude, magnitude]) {
@@ -265,7 +299,7 @@ function gridSvg(detailed) {
   }
 
   if (detailed) {
-    const susceptanceValues = [0.1, 0.2, 0.3, 0.5, 0.7, 1, 1.4, 2, 3, 5, 10, 20, 50];
+    const susceptanceValues = reactanceValues;
     for (const magnitude of susceptanceValues) {
       for (const susceptance of [-magnitude, magnitude]) {
         const samples = [];
@@ -286,6 +320,7 @@ function gridSvg(detailed) {
     }
   }
   parts.push(`<line class="smith-axis" x1="${CENTER - RADIUS}" y1="${CENTER}" x2="${CENTER + RADIUS}" y2="${CENTER}"/>`);
+  parts.unshift(perimeterScales());
   parts.push(`<circle class="smith-boundary" cx="${CENTER}" cy="${CENTER}" r="${RADIUS}"/>`);
   parts.push(`<circle class="smith-match" cx="${CENTER}" cy="${CENTER}" r="5"/>`);
   parts.push(`<text class="smith-tick" x="${CENTER - RADIUS}" y="${CENTER + 32}" text-anchor="middle">−1</text>`);
@@ -298,6 +333,9 @@ function gridSvg(detailed) {
 function markers(start, end, traces, technique, animationStart) {
   const s = pointFromReflection(start);
   const e = pointFromReflection(end);
+  const startsOnAdmittanceChart = new Set(["single-stub", "lossy-single-stub", "double-stub"]).has(technique);
+  const startLabel = startsOnAdmittanceChart ? "Start YL" : "Start";
+  const startTitle = startsOnAdmittanceChart ? "Starting normalized load-admittance point" : "Starting load point";
   const lastTraceDelay = animationStart + Math.max(0, traces.length - 1) * 1.4 + 1.3;
   const intermediate = traces.slice(0, -1).map((trace, index) => {
     const lastPoint = trace.points.at(-1) ?? start;
@@ -313,8 +351,8 @@ function markers(start, end, traces, technique, animationStart) {
       <text class="smith-step-label" x="${p.x + 9}" y="${p.y + 18}" style="--step-order:${index};--trace-start:${animationStart}s">${pointLabel}</text>`;
   }).join("\n");
   const startPointDelay = animationStart - 0.15;
-  return `<circle class="smith-start" cx="${s.x}" cy="${s.y}" r="7" style="--point-delay:${startPointDelay}s"><title>Starting load point</title></circle>
-  <text class="smith-marker-label" x="${s.x + 10}" y="${s.y - 10}" style="--point-delay:${startPointDelay}s">Start</text>
+  return `<circle class="smith-start" cx="${s.x}" cy="${s.y}" r="7" style="--point-delay:${startPointDelay}s"><title>${startTitle}</title></circle>
+  <text class="smith-marker-label" x="${s.x + 10}" y="${s.y - 10}" style="--point-delay:${startPointDelay}s">${startLabel}</text>
   ${intermediate}
   <circle class="smith-end" cx="${e.x}" cy="${e.y}" r="7" style="--point-delay:${lastTraceDelay}s"><title>Matched endpoint</title></circle>
   <text class="smith-marker-label smith-match-label" x="${e.x + 10}" y="${e.y - 10}" style="--point-delay:${lastTraceDelay}s">Match</text>`;

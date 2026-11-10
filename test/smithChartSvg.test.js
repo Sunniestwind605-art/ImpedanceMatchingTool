@@ -12,12 +12,15 @@ test("expanded Smith chart renders a labeled full grid, dim VSWR circle, and ani
   assert.match(svg, /viewBox="0 0 640 640"/);
   assert.match(svg, /class="smith-grid-label resistance-label"[^>]*>0\.2<\/text>/);
   assert.match(svg, /class="smith-grid-label resistance-label"[^>]*>10<\/text>/);
+  assert.match(svg, /class="smith-grid-label resistance-label"[^>]*>0\.05<\/text>/);
   assert.match(svg, /class="smith-grid-label reactance-label"[^>]*>5<\/text>/);
   assert.match(svg, /class="smith-grid smith-admittance"/);
   assert.match(svg, /class="smith-grid smith-susceptance"/);
   assert.match(svg, /class="smith-grid-label conductance-label"/);
   assert.match(svg, /class="smith-grid smith-admittance"[^>]*cx="486\.66666666666663" cy="320"/);
   assert.match(svg, /class="smith-grid-label susceptance-label"/);
+  assert.match(svg, /class="smith-perimeter-label"/);
+  assert.match(svg, />0\.01<\/text>/);
   assert.match(svg, /class="smith-vswr-reference"/);
   assert.match(svg, /Complete load VSWR circle; the colored line shows the selected matching route/);
   assert.match(svg, /\.smith-vswr-reference\{fill:none;stroke:#a99a4e;stroke-width:2\.2;opacity:\.42/);
@@ -26,7 +29,8 @@ test("expanded Smith chart renders a labeled full grid, dim VSWR circle, and ani
   assert.match(svg, /class="smith-trace trace-0"/);
   assert.match(svg, /<circle class="smith-start" cx="220" cy="270"/);
   assert.match(svg, /Normalized admittance • clockwise toward generator/);
-  assert.match(svg, /Starting load point/);
+  assert.match(svg, /Starting normalized load-admittance point/);
+  assert.match(svg, /M 220\.00 270\.00/);
   assert.match(svg, /Matched endpoint/);
   assert.match(svg, /VSWR 2\.62:1/);
   assert.ok((svg.match(/class="smith-grid"/g) ?? []).length >= 38);

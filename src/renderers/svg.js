@@ -37,7 +37,11 @@ export function svgDocument(content, { width = 760, height = 280, label = "" } =
     .smith-grid{fill:none;stroke:#aaa889;stroke-width:1.05;--grid-opacity:.38;opacity:var(--grid-opacity);stroke-dasharray:3000;stroke-dashoffset:3000;animation:grid-draw .75s ease-out both;animation-delay:calc(var(--grid-order)*.012s)}
     .smith-grid-detailed .smith-grid{stroke:#888a78;stroke-width:.82;--grid-opacity:.48}
     .smith-grid-detailed .smith-grid,.smith-grid-detailed .smith-grid-label{animation-delay:calc(var(--grid-order)*.012s)}
-    .smith-grid-label{font:600 12px ui-monospace,monospace;fill:#646650;paint-order:stroke;stroke:#fbfae9;stroke-width:4px;stroke-linejoin:round;opacity:.76;animation:grid-label-in .3s ease-out both;animation-delay:calc(var(--grid-order)*.025s)}
+    .smith-grid-label{font:600 8px ui-monospace,monospace;fill:#555844;paint-order:stroke;stroke:#fbfae9;stroke-width:2px;stroke-linejoin:round;opacity:.84;animation:grid-label-in .3s ease-out both;animation-delay:calc(var(--grid-order)*.025s)}
+    .smith-perimeter{fill:none;stroke:#77775e;stroke-width:.8;opacity:.88}
+    .smith-perimeter-tick{stroke:#555842;stroke-width:.55;opacity:.85}.smith-perimeter-tick.major{stroke-width:.9}
+    .smith-perimeter-label{font:600 6px ui-monospace,monospace;fill:#34392a;paint-order:stroke;stroke:#fffdf0;stroke-width:1.5px;stroke-linejoin:round}
+    .smith-perimeter-label.outer{font-size:5.5px;fill:#74765f}
     .smith-vswr-reference{fill:none;stroke:#a99a4e;stroke-width:2.2;opacity:.42;stroke-dashoffset:1;animation:grid-draw .85s ease-out both;animation-delay:1s}
     .smith-axis{stroke:#9a9879;stroke-width:1;stroke-dasharray:4 4}
     .smith-boundary{fill:none;stroke:#77775e;stroke-width:2}.smith-match{fill:#bb5739}
