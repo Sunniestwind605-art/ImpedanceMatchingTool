@@ -38,10 +38,10 @@ export function svgDocument(content, { width = 760, height = 280, label = "" } =
     .smith-grid-detailed .smith-grid{stroke:#888a78;stroke-width:.82;--grid-opacity:.48}
     .smith-grid-detailed .smith-grid,.smith-grid-detailed .smith-grid-label{animation-delay:calc(var(--grid-order)*.012s)}
     .smith-grid-label{font:600 12px ui-monospace,monospace;fill:#646650;paint-order:stroke;stroke:#fbfae9;stroke-width:4px;stroke-linejoin:round;opacity:.76;animation:grid-label-in .3s ease-out both;animation-delay:calc(var(--grid-order)*.025s)}
-    .smith-vswr-reference{fill:none;stroke:#b2aa79;stroke-width:1.7;stroke-dasharray:5 5;opacity:.6;stroke-dashoffset:1;animation:grid-draw .85s ease-out both;animation-delay:1s}
+    .smith-vswr-reference{fill:none;stroke:#a99a4e;stroke-width:2.2;opacity:.42;stroke-dashoffset:1;animation:grid-draw .85s ease-out both;animation-delay:1s}
     .smith-axis{stroke:#9a9879;stroke-width:1;stroke-dasharray:4 4}
     .smith-boundary{fill:none;stroke:#77775e;stroke-width:2}.smith-match{fill:#bb5739}
-    .smith-trace{fill:none;stroke:#c65b3b;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:draw-trace 1.3s cubic-bezier(.3,.65,.3,1) both;animation-delay:calc(var(--trace-start) + var(--draw-order)*1.4s)}
+    .smith-trace{fill:none;stroke:#c65b3b;stroke-width:5;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:draw-trace 1.3s cubic-bezier(.3,.65,.3,1) both;animation-delay:calc(var(--trace-start) + var(--draw-order)*1.4s)}
     .smith-step{fill:#f2d27a;stroke:#555842;stroke-width:2;opacity:0;animation:mark-step .35s ease-out both;animation-delay:calc(var(--trace-start) + (var(--step-order) + 1)*1.4s)}
     .smith-step-label{font:700 11px system-ui,sans-serif;fill:#293021;paint-order:stroke;stroke:#fffdf0;stroke-width:4px;stroke-linejoin:round;opacity:0;animation:mark-step .35s ease-out both;animation-delay:calc(var(--trace-start) + (var(--step-order) + 1)*1.4s)}
     .trace-1{stroke:#72775a}.trace-2{stroke:#a99a4e}.trace-3{stroke:#293021}

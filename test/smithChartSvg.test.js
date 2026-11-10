@@ -18,6 +18,9 @@ test("expanded Smith chart renders a labeled full grid, dim VSWR circle, and ani
   assert.match(svg, /class="smith-grid-label conductance-label"/);
   assert.match(svg, /class="smith-grid-label susceptance-label"/);
   assert.match(svg, /class="smith-vswr-reference"/);
+  assert.match(svg, /Complete load VSWR circle; the colored line shows the selected matching route/);
+  assert.match(svg, /\.smith-vswr-reference\{fill:none;stroke:#a99a4e;stroke-width:2\.2;opacity:\.42/);
+  assert.match(svg, /\.smith-trace\{fill:none;stroke:#c65b3b;stroke-width:5/);
   assert.match(svg, /stroke-dasharray:3000/);
   assert.match(svg, /class="smith-trace trace-0"/);
   assert.match(svg, /Starting load point/);

@@ -351,7 +351,7 @@ export function renderSmithChartSvg(result, technique, solutionIndex = 0, option
   const standingWaveRatio = gammaMagnitude >= 0.999999
     ? "∞"
     : ((1 + gammaMagnitude) / (1 - gammaMagnitude)).toFixed(2);
-  const vswrReference = `<circle class="smith-vswr-reference" pathLength="1" cx="${CENTER}" cy="${CENTER}" r="${(gammaMagnitude * RADIUS).toFixed(2)}" style="--grid-order:0;animation-delay:${animationStart - 0.1}s"/>`;
+  const vswrReference = `<circle class="smith-vswr-reference" pathLength="1" cx="${CENTER}" cy="${CENTER}" r="${(gammaMagnitude * RADIUS).toFixed(2)}" style="--grid-order:0;animation-delay:${animationStart - 0.1}s"><title>Complete load VSWR circle; the colored line shows the selected matching route</title></circle>`;
 
   return svgDocument(`<rect class="panel" x="4" y="4" width="632" height="632" rx="18"/>
   <g class="${detailed ? "smith-grid-detailed" : "smith-grid-compact"}">
