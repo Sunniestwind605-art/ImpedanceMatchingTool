@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#e9e7d8">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/smith-chart.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./src/app.css?v=offline-v5">
+  <link rel="stylesheet" href="./src/app.css?v=offline-v6">
 </head>
 <body>
   <main>
@@ -71,7 +71,7 @@
         </article>
         <article class="result-card chart-card">
           <h3>Smith chart path</h3>
-          <p class="chart-help">The full load VSWR circle is shown faintly behind the highlighted matching route. Replay the path or expand the chart.</p>
+          <p class="chart-help">Stub matching converts the load to admittance first. The full VSWR circle is faint behind the highlighted path to the stub and match.</p>
           <div class="chart-controls">
             <button id="chart-replay" type="button">Replay chart</button>
             <button id="chart-expand" type="button">Expand chart</button>
@@ -92,6 +92,6 @@
     </div>
     <div id="smith-chart-expanded"></div>
   </dialog>
-  <script type="module" src="./src/app.js?v=offline-v5"></script>
+  <script type="module" src="./src/app.js?v=offline-v6"></script>
 </body>
 </html>

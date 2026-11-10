@@ -81,7 +81,7 @@ function lossyStubPath(lineAdmittance, length, termination, attenuationNpPerWave
 }
 
 function gammaFromY(y) {
-  return reflectionCoefficient(reciprocal(y));
+  return reflectionCoefficient(y);
 }
 
 function shuntArc(admittance, susceptanceAdded) {
@@ -136,8 +136,9 @@ function traceFor(result, technique, solution) {
     );
     const loadReflection = reflectionCoefficient(load);
     const lineAdmittance = lossyLineAdmittance(loadReflection, solution.distanceWavelengths, result.attenuationNpPerWavelength);
+    const loadAdmittanceReflection = complex(-loadReflection.re, -loadReflection.im);
     return [
-      { label: "Load → lossy stub position", points: lossyLinePath(loadReflection, solution.distanceWavelengths, result.attenuationNpPerWavelength) },
+      { label: "Load admittance → lossy stub position", points: lossyLinePath(loadAdmittanceReflection, solution.distanceWavelengths, result.attenuationNpPerWavelength) },
       { label: "Lossy stub → match", points: lossyStubPath(lineAdmittance, solution.stubLengthWavelengths, result.termination, result.attenuationNpPerWavelength) },
     ];
   }
@@ -336,7 +337,8 @@ export function renderSmithChartSvg(result, technique, solutionIndex = 0, option
   const loadZ = technique === "l-network"
     ? complex(result.loadImpedance.re / result.sourceResistance, result.loadImpedance.im / result.sourceResistance)
     : complex(result.loadImpedance.re / result.characteristicImpedance, result.loadImpedance.im / result.characteristicImpedance);
-  const start = reflectionCoefficient(loadZ);
+  const startsOnAdmittanceChart = new Set(["single-stub", "lossy-single-stub", "double-stub"]).has(technique);
+  const start = reflectionCoefficient(startsOnAdmittanceChart ? reciprocal(loadZ) : loadZ);
   const end = complex(0);
   const traceSvg = traces.map((trace, index) => {
     const points = trace.points;
@@ -360,7 +362,7 @@ export function renderSmithChartSvg(result, technique, solutionIndex = 0, option
   ${vswrReference}
   ${traceSvg}
   ${markers(start, end, traces, technique, animationStart)}
-  <text class="smith-caption" x="${CENTER}" y="${SIZE - 17}" text-anchor="middle">Normalized impedance • clockwise toward generator • VSWR ${standingWaveRatio}:1</text>`, {
+  <text class="smith-caption" x="${CENTER}" y="${SIZE - 17}" text-anchor="middle">Normalized ${startsOnAdmittanceChart ? "admittance" : "impedance"} • clockwise toward generator • VSWR ${standingWaveRatio}:1</text>`, {
     width: SIZE,
     height: SIZE,
     label: `Animated Smith chart with normalized resistance and reactance values for ${technique}`,

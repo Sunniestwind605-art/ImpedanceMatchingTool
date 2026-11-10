@@ -23,6 +23,8 @@ test("expanded Smith chart renders a labeled full grid, dim VSWR circle, and ani
   assert.match(svg, /\.smith-trace\{fill:none;stroke:#c65b3b;stroke-width:5/);
   assert.match(svg, /stroke-dasharray:3000/);
   assert.match(svg, /class="smith-trace trace-0"/);
+  assert.match(svg, /<circle class="smith-start" cx="220" cy="270"/);
+  assert.match(svg, /Normalized admittance • clockwise toward generator/);
   assert.match(svg, /Starting load point/);
   assert.match(svg, /Matched endpoint/);
   assert.match(svg, /VSWR 2\.62:1/);
@@ -43,7 +45,7 @@ test("lossy single-stub route spirals through the chart before reaching match", 
   const result = calculateLossySingleStub(complex(100, -50), 50, 0.2, "short");
   const svg = renderSmithChartSvg(result, "lossy-single-stub", 0, { detail: "full" });
 
-  assert.match(svg, /Load → lossy stub position/);
+  assert.match(svg, /Load admittance → lossy stub position/);
   assert.match(svg, /Lossy stub → match/);
   assert.match(svg, /class="smith-trace trace-1"/);
 });
