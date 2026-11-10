@@ -1,4 +1,4 @@
-const CACHE_NAME = "impedance-matching-shell-v1";
+const CACHE_NAME = "impedance-matching-shell-v2";
 const APP_FILES = [
   "./index.html",
   "./manifest.webmanifest",
