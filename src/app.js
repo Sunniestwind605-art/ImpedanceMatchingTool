@@ -10,7 +10,7 @@ import {
   renderQuarterWaveSvg,
   renderSmithChartSvg,
   renderSingleStubSvg,
-} from "./index.js?v=offline-v6";
+} from "./index.js?v=offline-v7";
 
 const form = document.querySelector("#matching-form");
 const technique = document.querySelector("#technique");

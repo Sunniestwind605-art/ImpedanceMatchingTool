@@ -228,11 +228,11 @@ function gridSvg(detailed) {
   if (detailed) {
     const conductanceValues = [0.1, 0.2, 0.3, 0.5, 0.7, 1, 1.4, 2, 3, 5, 10, 20, 50];
     for (const g of conductanceValues) {
-      const center = pointFromReflection(complex(-g / (1 + g), 0));
+      const center = pointFromReflection(complex(g / (1 + g), 0));
       const circleRadius = RADIUS / (1 + g);
       parts.push(`<circle class="smith-grid smith-admittance" style="--grid-order:${gridOrder++}" cx="${center.x}" cy="${center.y}" r="${circleRadius}"/>`);
       if (g <= 10) {
-        const crossing = pointFromReflection(complex((1 - g) / (1 + g), 0));
+        const crossing = pointFromReflection(complex((g - 1) / (g + 1), 0));
         parts.push(`<text class="smith-grid-label conductance-label" x="${crossing.x}" y="${CENTER - 8}" text-anchor="middle" style="--grid-order:${gridOrder++}">${g}</text>`);
       }
     }
@@ -273,12 +273,12 @@ function gridSvg(detailed) {
         const logRange = Math.log1p(maxConductance);
         for (let index = 0; index <= 220; index += 1) {
           const conductance = Math.expm1(index / 220 * logRange);
-          samples.push(reflectionCoefficient(reciprocal(complex(conductance, susceptance))));
+          samples.push(reflectionCoefficient(complex(conductance, susceptance)));
         }
         parts.push(`<path class="smith-grid smith-susceptance" style="--grid-order:${gridOrder++}" d="${pathFromReflections(samples)}"/>`);
 
         if (magnitude > 5) continue;
-        const crossing = pointFromReflection(reflectionCoefficient(reciprocal(complex(0, susceptance))));
+        const crossing = pointFromReflection(reflectionCoefficient(complex(0, susceptance)));
         const x = crossing.x + (crossing.x < CENTER ? 7 : -7);
         const y = crossing.y + (susceptance > 0 ? 4 : -4);
         parts.push(`<text class="smith-grid-label susceptance-label" x="${x}" y="${y}" text-anchor="${crossing.x < CENTER ? "start" : "end"}" style="--grid-order:${gridOrder++}">${magnitude}</text>`);

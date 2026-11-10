@@ -16,6 +16,7 @@ test("expanded Smith chart renders a labeled full grid, dim VSWR circle, and ani
   assert.match(svg, /class="smith-grid smith-admittance"/);
   assert.match(svg, /class="smith-grid smith-susceptance"/);
   assert.match(svg, /class="smith-grid-label conductance-label"/);
+  assert.match(svg, /class="smith-grid smith-admittance"[^>]*cx="486\.66666666666663" cy="320"/);
   assert.match(svg, /class="smith-grid-label susceptance-label"/);
   assert.match(svg, /class="smith-vswr-reference"/);
   assert.match(svg, /Complete load VSWR circle; the colored line shows the selected matching route/);
